@@ -364,10 +364,18 @@ var SettingDialog = (function ()  {
                 with(borderPanels.add()){
                     staticTexts.add({staticLabel:"検索と置換範囲："});
                     this.range = radiobuttonGroups.add();
+                    
+                    var doc = app.activeDocument;
                     with(this.range){
                         radiobuttonControls.add({staticLabel:"ドキュメント", checkedState:true});
-                        radiobuttonControls.add({staticLabel:"ストーリー"});
-                        radiobuttonControls.add({staticLabel:"選択範囲"});
+                        
+                        if(doc.selection.length > 0) { 
+                            radiobuttonControls.add({staticLabel:"ストーリー"});
+                            if(doc.selection[0].characters.length > 0) {
+                                radiobuttonControls.add({staticLabel:"選択範囲"});
+                            }
+                        }
+                    
                     }
                 }
             }
@@ -418,8 +426,14 @@ panelObj.panel.show();
 
 var fs = new Fontset(panelObj.panel);
 var appFonts = fs.getAppFonts();
-var storyFonts = fs.makeFontSubset(app.activeDocument.selection[0].parentStory);
-var selectionFonts = fs.makeFontSubset(app.activeDocument.selection[0]);
+var storyFonts = [];
+var selectionFonts = [];
+if(app.activeDocument.selection.length > 0) {
+    storyFonts = fs.makeFontSubset(app.activeDocument.selection[0].parentStory);
+    if(app.activeDocument.selection[0].characters.length > 0) {
+        selectionFonts = fs.makeFontSubset(app.activeDocument.selection[0]);
+    }
+}
 
 panelObj.panel.close();
 
