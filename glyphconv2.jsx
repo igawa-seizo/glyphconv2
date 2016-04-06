@@ -210,7 +210,7 @@ var GlyphConverter= (function () {
         this.target = "";
         if(this.pref.target == "document") this.target = this.document;
         else if(this.pref.target == "story") this.target = this.document.selection[0].parentStory;
-        else if(this.pref.target == "selection") this.target = this.document.selection;
+        else if(this.pref.target == "selection") this.target = this.document.selection[0];
         
         this.glyphTable = this.pref["glyphTable"];
         this.fontTable   = this.pref["fontTable"];
