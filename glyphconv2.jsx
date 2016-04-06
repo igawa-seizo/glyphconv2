@@ -337,14 +337,9 @@ var SettingDialog = (function ()  {
         
         with(dialog){
             with(dialogColumns.add()) {
-                var fontPanel = borderPanels.add();
-                this.setFontMenu(fontPanel);
-                
-                var glyphPanel = borderPanels.add();
-                this.setGlyphMenu(glyphPanel);
-                
-                var rangePanel = borderPanels.add();
-                this.setRangeMenu(rangePanel);
+                this.setFontMenu(borderPanels.add());
+                this.setGlyphMenu(borderPanels.add());
+                this.setRangeMenu(borderPanels.add());
             }
         }
     };
