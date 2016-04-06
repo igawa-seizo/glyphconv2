@@ -139,14 +139,18 @@ var Fontset= (function () {
 	function Fontset(panel) {   
         this.openTypeFontsCnt  = 0;
         
-        this.appFonts = {};
+        this.fonts = {
+            "document" : {},
+            "story" : {},
+            "selection" : {},
+        };
         this.panel = panel;
         
         this.makeFontset();
 	}
 
     Fontset.prototype.getAppFonts = function() {
-        return this.appFonts;
+        return this.fonts["document"];
     };
 
     //アプリケーションのフォントを取得
@@ -159,11 +163,11 @@ var Fontset= (function () {
             if(font.fontType.toString() != "OPENTYPE_CID") continue;
            
             var fontName = font.fontFamily + "  " + font.fontStyleName;
-            if(fontName in this.appFonts) continue;
+            if(fontName in this.fonts["document"]) continue;
             
             var result = re.exec(font.fontFamily);
             if(result != null) {
-                this.appFonts[fontName] = font;
+                this.fonts["document"][fontName] = font;
                 this.openTypeFontsCnt++;
            }
         }
@@ -202,14 +206,11 @@ var GlyphConverter= (function () {
 	function GlyphConverter(pref, panel) {
         this.pref = pref;
         
-        this.document  = app.activeDocument;
-        this.story = this.document.selection[0].parentStory;
-        this.selection = this.document.selection;
-        
+        this.document  = app.activeDocument;        
         this.target = "";
         if(this.pref.target == "document") this.target = this.document;
-        else if(this.pref.target == "story") this.target = this.story;
-        else if(this.pref.target == "selection") this.target = this.selection[0];
+        else if(this.pref.target == "story") this.target = this.document.selection[0].parentStory;
+        else if(this.pref.target == "selection") this.target = this.document.selection;
         
         this.glyphTable = this.pref["glyphTable"];
         this.fontTable   = this.pref["fontTable"];
@@ -289,7 +290,7 @@ var GlyphConverter= (function () {
     };    
 
     GlyphConverter.prototype.convert = function () {
-         if(this.pref.target == "selection" && this.selection.length == 0) {
+         if(this.pref.target != "document" && this.selection.length == 0) {
              return;
         }
 
@@ -325,8 +326,8 @@ var SettingDialog = (function ()  {
          };
      
          this.glyphSet = {
-            0 : "h22_hige",
-            1 : "h22_none",
+            0 : "h22_fude",
+            1 : "h22",
             2 : "trad",
          };
         
@@ -425,13 +426,12 @@ panelObj.panel.ProgressLabel.text  = "フォントを取得中です。完了ま
 panelObj.panel.show();
 
 var fs = new Fontset(panelObj.panel);
-var appFonts = fs.getAppFonts();
-var storyFonts = [];
-var selectionFonts = [];
+fs.getAppFonts();
+
 if(app.activeDocument.selection.length > 0) {
-    storyFonts = fs.makeFontSubset(app.activeDocument.selection[0].parentStory);
+    fs.fonts["story"] = fs.makeFontSubset(app.activeDocument.selection[0].parentStory);
     if(app.activeDocument.selection[0].characters.length > 0) {
-        selectionFonts = fs.makeFontSubset(app.activeDocument.selection[0]);
+        fs.fonts["selection"] = fs.makeFontSubset(app.activeDocument.selection[0]);
     }
 }
 
@@ -449,59 +449,29 @@ while(1) {
      var pref = { 
           "fontSet" : dialog.getFont(),
           "target" : dialog.getRange(),
-          "mode" : "trad",
-          "hige" : 1,
+          "mode" : dialog.getGlyphPref(),
           "fontTable" : {},
-          "glyphTable" : {
-                "unicode" : [],
-                "cid" : {
-                    "Pro" : [],
-                    "ProN" : [],
-                    "Pr6" : [],
-                    "Pr6N" : [],
-                },
-          },
+          "glyphTable" : {},
      };
-
-    //字形変換設定の取得
-    var glyphPref = dialog.getGlyphPref(); 
-    if(glyphPref == "h22_hige") {
-        pref["mode"] = "h22_fude";
-    } else if(glyphPref == "h22_none") {
-        pref["mode"] = "h22";
-    } else if(glyphPref == "trad") {
-        pref["mode"] = "trad";
-    } 
+ 
+    //設定に応じたる字形変換表を作成する
+    pref["glyphTable"]  = {
+        "unicode" : makeUnicodeTableSubset(pref["mode"], 15),
+        "cid" : {
+            "Pro"   : makeCidTableSubset(pref["mode"], 7,   "Pro"),
+            "ProN" : makeCidTableSubset(pref["mode"], 11, "ProN"),
+            "Pr6"   : makeCidTableSubset(pref["mode"], 7,   "Pr6"),
+            "Pr6N" : makeCidTableSubset(pref["mode"], 11, "Pr6N"),
+        },
+    };
     
     //フォント一覧表の設定
     if(dialog.getFont() == "使用中の全フォント") {
-        if(pref["target"] == "document") pref["fontTable"] = appFonts;
-        else if(pref["target"] == "story") pref["fontTable"] = storyFonts;
-        else if(pref["target"] == "selection") pref["fontTable"] = selectionFonts;
+        pref["fontTable"] = fs.fonts[pref["target"]];
     } else {
         var fontName = dialog.getFont();
-        pref["fontTable"][fontName] = appFonts[fontName];
+        pref["fontTable"][fontName] = fs.fonts["document"][fontName];
     }
-    
-    //各フォント（Pro、ProN、Pr6、Pr6N）に応じたる変換表を作成
-    var panelObj = new ProgressPanel("変換テーブルの作成中");
-    panelObj.setInstance(5, 400);
-    panelObj.panel.ProgressLabel.text  = "字形変換テーブルの作成中です。完了までしばらくお待ちください……" ;
-    panelObj.panel.show();
-    
-    pref["glyphTable"]["unicode"] = makeUnicodeTableSubset(pref["mode"], 15);
-    panelObj.panel.ProgressBar.value++;
-    
-    pref["glyphTable"]["cid"]["Pro"]    = makeCidTableSubset(pref["mode"], 7, "Pro");
-    panelObj.panel.ProgressBar.value++;
-    pref["glyphTable"]["cid"]["ProN"] = makeCidTableSubset(pref["mode"], 11, "ProN");
-    panelObj.panel.ProgressBar.value++;
-    pref["glyphTable"]["cid"]["Pr6"]    = makeCidTableSubset(pref["mode"], 7, "Pr6");
-    panelObj.panel.ProgressBar.value++;
-    pref["glyphTable"]["cid"]["Pr6N"] = makeCidTableSubset(pref["mode"], 11, "Pr6N");
-    panelObj.panel.ProgressBar.value++;
-    
-    panelObj.panel.close();
 
     //変換工数の計算
     var unicodeTableSize = pref["glyphTable"]["unicode"].length;
@@ -519,7 +489,6 @@ while(1) {
     panelObj.setInstance(cnt, 400);
     panelObj.panel.ProgressLabel.text  = "字形変換中です。完了までしばらくお待ちください……" ;
     panelObj.panel.show();
-    panelObj.panel.show();
 
     //タイマーを設定
     var startTime = new Date();
@@ -529,9 +498,6 @@ while(1) {
     ctrl.convert();
     var endTime = new Date();
     
-    
     alert("変換が終了しました。所要時間：" + (endTime - startTime) / 1000 + "秒");
-    panelObj.panel.close();
-
-    
+    panelObj.panel.close();  
 }
