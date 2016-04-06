@@ -337,49 +337,65 @@ var SettingDialog = (function ()  {
         
         with(dialog){
             with(dialogColumns.add()) {
-                with(borderPanels.add()) {
-                    staticTexts.add({staticLabel:"フォント："});
+                var fontPanel = borderPanels.add();
+                this.setFontMenu(fontPanel);
+                
+                var glyphPanel = borderPanels.add();
+                this.setGlyphMenu(glyphPanel);
+                
+                var rangePanel = borderPanels.add();
+                this.setRangeMenu(rangePanel);
+            }
+        }
+    };
 
-                    var list = [];
-                    list.push("使用中の全フォント")
-                    for(font in this.appFonts) {
-                        list.push(font);
-                    }
-                    this.font = dropdowns.add({stringList: list, selectedIndex:0, minWidth:200});
-                    
-                }
+    //フォントメニュー
+    SettingDialog.prototype.setFontMenu= function(panel)  {
+        with(panel) {
+            staticTexts.add({staticLabel:"フォント："});
 
-                with(borderPanels.add()){
-                    staticTexts.add({staticLabel:"字形変換設定："});
-                    this.glyph = radiobuttonGroups.add();
-                    with(this.glyph){
-                        radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえあり", checkedState:true});
-                        radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえなし"});
-                        radiobuttonControls.add({staticLabel:"所謂康熙字典体（旧字体）"});
-                    }
-                }
+            var list = [];
+            list.push("使用中の全フォント")
+            for(font in this.appFonts) {
+                list.push(font);
+            }
+            this.font = dropdowns.add({stringList: list, selectedIndex:0, minWidth:200});
+        }
+    };
 
-                with(borderPanels.add()){
-                    staticTexts.add({staticLabel:"検索と置換範囲："});
-                    this.range = radiobuttonGroups.add();
-                    
-                    var doc = app.activeDocument;
-                    with(this.range){
-                        radiobuttonControls.add({staticLabel:"ドキュメント", checkedState:true});
-                        
-                        if(doc.selection.length > 0) { 
-                            radiobuttonControls.add({staticLabel:"ストーリー"});
-                            if(doc.selection[0].characters.length > 0) {
-                                radiobuttonControls.add({staticLabel:"選択範囲"});
-                            }
-                        }
-                    
+    //字形変換メニュー
+    SettingDialog.prototype.setGlyphMenu= function(panel)  {
+        with(panel) {
+            staticTexts.add({staticLabel:"字形変換設定："});
+            this.glyph = radiobuttonGroups.add();
+            with(this.glyph){
+                radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえあり", checkedState:true});
+                radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえなし"});
+                radiobuttonControls.add({staticLabel:"所謂康熙字典体（旧字体）"});
+            }
+        }
+    };
+ 
+     //検索範囲メニュー
+     SettingDialog.prototype.setRangeMenu= function(panel)  {
+         with(panel) {
+            staticTexts.add({staticLabel:"検索と置換範囲："});
+            this.range = radiobuttonGroups.add();
+
+            var doc = app.activeDocument;
+            with(this.range){
+                radiobuttonControls.add({staticLabel:"ドキュメント", checkedState:true});
+                
+                if(doc.selection.length > 0) { 
+                    radiobuttonControls.add({staticLabel:"ストーリー"});
+                    if(doc.selection[0].characters.length > 0) {
+                        radiobuttonControls.add({staticLabel:"選択範囲"});
                     }
                 }
             }
         }
-    };
-    
+     };
+
     //ダイアログ描写
      SettingDialog.prototype.show= function()  {
           if(dialog.show() == true) {
@@ -423,8 +439,6 @@ panelObj.panel.ProgressLabel.text  = "フォントを取得中です。完了ま
 panelObj.panel.show();
 
 var fs = new Fontset(panelObj.panel);
-fs.getAppFonts();
-
 if(app.activeDocument.selection.length > 0) {
     fs.fonts["story"] = fs.makeFontSubset(app.activeDocument.selection[0].parentStory);
     if(app.activeDocument.selection[0].characters.length > 0) {
