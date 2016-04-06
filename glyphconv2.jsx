@@ -258,6 +258,7 @@ var GlyphConverter= (function () {
         //検索クエリの格納
         app.findGlyphPreferences.appliedFont = this.fontTable[fontName];
         app.findGlyphPreferences.fontStyle = this.fontTable[fontName].fontStyleName;
+        
         app.changeGlyphPreferences.appliedFont = this.fontTable[fontName];
         app.changeGlyphPreferences.fontStyle = this.fontTable[fontName].fontStyleName;
         
@@ -290,10 +291,6 @@ var GlyphConverter= (function () {
     };    
 
     GlyphConverter.prototype.convert = function () {
-         if(this.pref.target != "document" && this.selection.length == 0) {
-             return;
-        }
-
         //UNICODE内での変換
        this.convertText();
 
