@@ -56,7 +56,7 @@ function setConvertTable() {
     collection : Pro, ProN, Pr5, Pr5N, Pr6, Pr6N
 */
 
-function makeCidTableSubset(mode, prefFlag, collection) {
+function makeCidTableSubset(table, mode, prefFlag, collection) {
     var list = [];
     var maxCidNumber = {
         "Pro" : 15444,
@@ -67,9 +67,8 @@ function makeCidTableSubset(mode, prefFlag, collection) {
         "Pr6N" : 23058,
     };
 
-    var len = convertTable.length;
-    for(var i = 0; i < len; i++) {
-        var dat = convertTable[i];
+    for(i = 0, len = table.length; i < len; i++) {
+        var dat = table[i];
         var flag = 0;
 
         //フラグに合致するのを取り出す
@@ -99,12 +98,11 @@ function makeCidTableSubset(mode, prefFlag, collection) {
     return list;
 }
 
-function makeUnicodeTableSubset(mode, prefFlag) {
+function makeUnicodeTableSubset(table, mode, prefFlag) {
     var list = [];
    
-    var len = convertTable.length;
-    for(var i = 0; i < len; i++) {
-        var dat = convertTable[i];
+    for(i = 0, len = table.length; i < len; i++) {
+        var dat = table[i];
 
         //フラグに合致するのを取り出す
         var flag = 0;
@@ -362,6 +360,7 @@ var SettingDialog = (function ()  {
     SettingDialog.prototype.setGlyphMenu= function(panel)  {
         with(panel) {
             staticTexts.add({staticLabel:"字形変換設定："});
+            
             this.glyph = radiobuttonGroups.add();
             with(this.glyph){
                 radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえあり", checkedState:true});
@@ -426,6 +425,10 @@ var SettingDialog = (function ()  {
 ////////////////////////////////////////////////////////////////////////////
 
 function main() {
+    //初期化処理
+    var convertTable = setConvertTable();
+    if(convertTable.length == 0) return;
+    
     //OpenTypeフォントの取得
     var panelObj = new ProgressPanel("フォント取得中");
     panelObj.setInstance(app.activeDocument.fonts.length, 400);
@@ -461,21 +464,20 @@ function main() {
      
         //設定に応じたる字形変換表を作成する
         pref["glyphTable"]  = {
-            "unicode" : makeUnicodeTableSubset(pref["mode"], 15),
+            "unicode" : makeUnicodeTableSubset(convertTable, pref["mode"], 15),
             "cid" : {
-                "Pro"   : makeCidTableSubset(pref["mode"], 7,   "Pro"),
-                "ProN" : makeCidTableSubset(pref["mode"], 11, "ProN"),
-                "Pr6"   : makeCidTableSubset(pref["mode"], 7,   "Pr6"),
-                "Pr6N" : makeCidTableSubset(pref["mode"], 11, "Pr6N"),
+                "Pro"   : makeCidTableSubset(convertTable, pref["mode"], 7,   "Pro"),
+                "ProN" : makeCidTableSubset(convertTable, pref["mode"], 11, "ProN"),
+                "Pr6"   : makeCidTableSubset(convertTable, pref["mode"], 7,   "Pr6"),
+                "Pr6N" : makeCidTableSubset(convertTable, pref["mode"], 11, "Pr6N"),
             },
         };
         
         //フォント一覧表の設定
-        if(dialog.getFont() == "使用中の全フォント") {
+        if(pref["fontSet"] == "使用中の全フォント") {
             pref["fontTable"] = fs.fonts[pref["target"]];
         } else {
-            var fontName = dialog.getFont();
-            pref["fontTable"][fontName] = fs.fonts["document"][fontName];
+            pref["fontTable"][fontName] = fs.fonts["document"][pref["fontSet"]];
         }
 
         //変換工数の計算
@@ -508,7 +510,6 @@ function main() {
     }
 }
 
-//初期化処理
-var convertTable = setConvertTable();
-if(convertTable.length > 0) main();
+//メイン関数呼び出し
+main();
 
