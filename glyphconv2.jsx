@@ -50,12 +50,12 @@ function setConvertTable() {
 }
 
 /*
-    字形変換表を抽出
+    字形変換表を抽出（CID）
+    table：字形変換表、jsonオブジェクト
     mode : h22, s56, trad
     flag : setConvertTableを参照、
     collection : Pro, ProN, Pr5, Pr5N, Pr6, Pr6N
 */
-
 function makeCidTableSubset(table, mode, prefFlag, collection) {
     var list = [];
     var maxCidNumber = {
@@ -98,6 +98,13 @@ function makeCidTableSubset(table, mode, prefFlag, collection) {
     return list;
 }
 
+/*
+    字形変換表を抽出（Unicode）
+    定義済みのJSONファイルで変換すると置換で時間が掛かりすぎる
+    table：字形変換表、jsonオブジェクト
+    mode : h22, s56, trad
+    flag : setConvertTableを参照
+*/
 function makeUnicodeTableSubset(table, mode, prefFlag) {
     var list = [];
    
@@ -243,15 +250,9 @@ var GlyphConverter= (function () {
         } catch(err) {
             alert(err + "：" + dat["src"] + "→" + dat["dst"]);
         }
-         /*for (var i=0; i<this.document.pages.length; i++){
-                var pageObj = this.document.pages[i];
-                for (var j=0; j<pageObj.textFrames.length; j++) {
-                     pageObj.textFrames[j].parentStory.changeText();
-               }
-         }*/
     };
 
-    //字形変換
+    //CIDでの字形変換を担当する
     GlyphConverter.prototype.convertGlyph = function(fontName)  {
         //検索クエリの格納
         app.findGlyphPreferences.appliedFont = this.fontTable[fontName];
@@ -401,7 +402,7 @@ var SettingDialog = (function ()  {
  
     //ダイアログ破壊
      SettingDialog.prototype.dispose= function()  {
-          this.instance = null;
+          dialog = null;
      };
 
     //フォントの選択値取得
@@ -446,8 +447,8 @@ function main() {
     panelObj.panel.close();
 
     var dialog = new SettingDialog(fs.getAppFonts());
+    //字形変換ダイアログの設定
     while(1) {
-        //字形変換ダイアログの設定
          dialog.setWindow();
          if(dialog.show() != 0) {
              dialog.dispose();
