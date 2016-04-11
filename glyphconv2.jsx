@@ -465,12 +465,12 @@ function main() {
      
         //設定に応じたる字形変換表を作成する
         pref["glyphTable"]  = {
-            "unicode" : makeUnicodeTableSubset(convertTable, pref["mode"], 15),
+            "unicode" : makeUnicodeTableSubset(convertTable, pref["mode"], 3),
             "cid" : {
-                "Pro"   : makeCidTableSubset(convertTable, pref["mode"], 7,   "Pro"),
-                "ProN" : makeCidTableSubset(convertTable, pref["mode"], 11, "ProN"),
-                "Pr6"   : makeCidTableSubset(convertTable, pref["mode"], 7,   "Pr6"),
-                "Pr6N" : makeCidTableSubset(convertTable, pref["mode"], 11, "Pr6N"),
+                "Pro"   : makeCidTableSubset(convertTable, pref["mode"], 1,   "Pro"),
+                "ProN" : makeCidTableSubset(convertTable, pref["mode"], 2, "ProN"),
+                "Pr6"   : makeCidTableSubset(convertTable, pref["mode"], 1,   "Pr6"),
+                "Pr6N" : makeCidTableSubset(convertTable, pref["mode"], 2, "Pr6N"),
             },
         };
         
