@@ -345,14 +345,13 @@ var SettingDialog = (function ()  {
 
     //フォントメニュー
     SettingDialog.prototype.setFontMenu= function(panel)  {
+        var list = [];
+        list.push("使用中の全フォント")
+        for(font in this.appFonts) {
+            list.push(font);
+        }
         with(panel) {
             staticTexts.add({staticLabel:"フォント："});
-
-            var list = [];
-            list.push("使用中の全フォント")
-            for(font in this.appFonts) {
-                list.push(font);
-            }
             this.font = dropdowns.add({stringList: list, selectedIndex:0, minWidth:200});
         }
     };
@@ -373,21 +372,19 @@ var SettingDialog = (function ()  {
  
      //検索範囲メニュー
      SettingDialog.prototype.setRangeMenu= function(panel)  {
+         var doc = app.activeDocument;
+         var list = [];
+         list.push("ドキュメント");
+        if(doc.selection.length > 0) { 
+            list.push("ストーリー");
+            if(doc.selection[0].characters.length > 0) {
+                list.push("選択範囲");
+            }
+        }
+         
          with(panel) {
             staticTexts.add({staticLabel:"検索と置換範囲："});
-            this.range = radiobuttonGroups.add();
-
-            var doc = app.activeDocument;
-            with(this.range){
-                radiobuttonControls.add({staticLabel:"ドキュメント", checkedState:true});
-                
-                if(doc.selection.length > 0) { 
-                    radiobuttonControls.add({staticLabel:"ストーリー"});
-                    if(doc.selection[0].characters.length > 0) {
-                        radiobuttonControls.add({staticLabel:"選択範囲"});
-                    }
-                }
-            }
+            this.range = dropdowns.add({stringList: list, selectedIndex:0, minWidth:200});
         }
      };
 
@@ -411,8 +408,8 @@ var SettingDialog = (function ()  {
      };
  
     //対象の選択値取得
-    SettingDialog.prototype.getRange= function()  {
-           return this.rangeSet[this.range.selectedButton];
+    SettingDialog.prototype.getRange= function()  {  
+           return this.rangeSet[this.range.selectedIndex];
      };
  
      //字形の選択値取得
