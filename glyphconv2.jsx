@@ -335,10 +335,16 @@ var SettingDialog = (function ()  {
        dialog = app.dialogs.add({name:"字形変換オプション", canCancel:true});
         
         with(dialog){
-            with(dialogColumns.add()) {
-                this.setFontMenu(borderPanels.add());
-                this.setGlyphMenu(borderPanels.add());
-                this.setRangeMenu(borderPanels.add());
+            with(dialogColumns.add()) {                
+                with(borderPanels.add()) {
+                    with(dialogColumns.add()) {  
+                        this.setFontMenu(dialogRows.add());
+                        with(dialogRows.add()) {　staticTexts.add({staticLabel:""}); }
+                        this.setGlyphMenu(dialogRows.add());
+                        with(dialogRows.add()) {　staticTexts.add({staticLabel:""});}
+                        this.setRangeMenu(dialogRows.add());
+                    }
+                }
             }
         }
     };
@@ -359,13 +365,13 @@ var SettingDialog = (function ()  {
     //字形変換メニュー
     SettingDialog.prototype.setGlyphMenu= function(panel)  {
         with(panel) {
-            staticTexts.add({staticLabel:"字形変換設定："});
+            staticTexts.add({staticLabel:"字形の変換："});
             
             this.glyph = radiobuttonGroups.add();
             with(this.glyph){
                 radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえあり", checkedState:true});
                 radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえなし"});
-                radiobuttonControls.add({staticLabel:"所謂康熙字典体（旧字体）"});
+                radiobuttonControls.add({staticLabel:"いわゆる康熙字典体（旧字体）"});
             }
         }
     };
@@ -383,7 +389,7 @@ var SettingDialog = (function ()  {
         }
          
          with(panel) {
-            staticTexts.add({staticLabel:"検索と置換範囲："});
+            staticTexts.add({staticLabel:"検索と置換："});
             this.range = dropdowns.add({stringList: list, selectedIndex:0, minWidth:200});
         }
      };
