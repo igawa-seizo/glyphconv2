@@ -224,8 +224,11 @@ var GlyphConverter= (function () {
 
     //UNICODE内での置換を担当する
     GlyphConverter.prototype.convertText = function()  {
-         //フォントによって選ぶ
-         if(this.pref.fontSet == "使用中の全フォント") {
+         //検索クエリの格納
+         var fontCnt = 0;
+         for(var tmp in this.fontTable) fontCnt++;
+         
+         if(this.pref.fontSet == "使用中の全フォント" || fontCnt == 1) {
             app.findTextPreferences.appliedFont = NothingEnum.nothing;
             app.findTextPreferences.fontStyle = NothingEnum.nothing;
          } else {
@@ -262,18 +265,7 @@ var GlyphConverter= (function () {
         app.changeGlyphPreferences.fontStyle = this.fontTable[fontName].fontStyleName;
         
         //変換表の取り出し
-        var re = new RegExp("(ProN|Pro|Pr5N|Pr5|Pr6N|Pr6)");
-        var result = re.exec(fontName);
-        var correspondence= {
-            "Pro" : "Pro",
-            "ProN" : "ProN",
-            "Pr5" : "Pr6",
-            "Pr5N" : "Pr6N",
-            "Pr6" : "Pr6",
-            "Pr6N" : "Pr6N",
-        };
-        var collection = correspondence[result[0]];
-        
+        var collection = getCorrespondence(fontName);
         var table = this.pref["glyphTable"]["cid"][collection];
         try {
             for(var i = 0, len = table.length; i < len; i++) {
@@ -297,6 +289,21 @@ var GlyphConverter= (function () {
         for(var fontName in this.fontTable) {
             this.convertGlyph(fontName);
         }
+    }
+
+    function getCorrespondence(fontName) {
+        //変換表の取り出し
+        var re = new RegExp("(ProN|Pro|Pr5N|Pr5|Pr6N|Pr6)");
+        var result = re.exec(fontName);
+        var correspondence= {
+            "Pro" : "Pro",
+            "ProN" : "ProN",
+            "Pr5" : "Pr6",
+            "Pr5N" : "Pr6N",
+            "Pr6" : "Pr6",
+            "Pr6N" : "Pr6N",
+        };
+        return correspondence[result[0]];
     }
 
     return GlyphConverter;
@@ -440,12 +447,6 @@ function main() {
     panelObj.panel.show();
 
     var fs = new Fontset(panelObj.panel);
-    if(app.activeDocument.selection.length > 0) {
-        fs.fonts["story"] = fs.makeFontSubset(app.activeDocument.selection[0].parentStory);
-        if(app.activeDocument.selection[0].characters.length > 0) {
-            fs.fonts["selection"] = fs.makeFontSubset(app.activeDocument.selection[0]);
-        }
-    }
 
     panelObj.panel.close();
 
@@ -459,7 +460,7 @@ function main() {
          }
          
          var pref = { 
-              "fontSet" : dialog.getFont(),
+              "fontName" : dialog.getFont(),
               "target" : dialog.getRange(),
               "mode" : dialog.getGlyphPref(),
               "fontTable" : {},
@@ -479,9 +480,9 @@ function main() {
         
         //フォント一覧表の設定
         if(pref["fontSet"] == "使用中の全フォント") {
-            pref["fontTable"] = fs.fonts[pref["target"]];
+            pref["fontTable"] = fs.fonts["document"];
         } else {
-            pref["fontTable"][fontName] = fs.fonts["document"][pref["fontSet"]];
+            pref["fontTable"][pref["fontName"]] = fs.fonts["document"][pref["fontName"]];
         }
 
         //変換工数の計算
