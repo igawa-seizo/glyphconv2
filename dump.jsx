@@ -25,6 +25,6 @@ var table = setConvertTable();
 var text = "";
 for(i = 0, len = table.length; i < len; i++) {
     var dat = table[i];
-    text += dat["fchr"] + "\t"+ dat["fchr"] + "\t"+ dat["fchr"]  + "\t"+ dat["fchr"] + "\n";
+    text += "①" + dat["fchr"] + "　②"+ dat["fchr"] + "　③"+ dat["fchr"]  + "　④"+ dat["fchr"] + "\n";
 }
 app.activeDocument.selection[0].contents  = text;
