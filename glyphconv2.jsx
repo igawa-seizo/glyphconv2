@@ -228,7 +228,7 @@ var GlyphConverter= (function () {
          var fontCnt = 0;
          for(var tmp in this.fontTable) fontCnt++;
          
-         if(this.pref.fontSet == "使用中の全フォント" || fontCnt == 1) {
+         if(this.pref.fontName == "使用中の全フォント" || fontCnt == 1) {
             app.findTextPreferences.appliedFont = NothingEnum.nothing;
             app.findTextPreferences.fontStyle = NothingEnum.nothing;
          } else {
@@ -258,11 +258,16 @@ var GlyphConverter= (function () {
     //CIDでの字形変換を担当する
     GlyphConverter.prototype.convertGlyph = function(fontName)  {
         //検索クエリの格納
+        try {
         app.findGlyphPreferences.appliedFont = this.fontTable[fontName];
         app.findGlyphPreferences.fontStyle = this.fontTable[fontName].fontStyleName;
         
         app.changeGlyphPreferences.appliedFont = this.fontTable[fontName];
         app.changeGlyphPreferences.fontStyle = this.fontTable[fontName].fontStyleName;
+        } catch(err) {
+                alert(err);
+                alert(fontName)
+         }
         
         //変換表の取り出し
         var collection = getCorrespondence(fontName);
@@ -479,7 +484,7 @@ function main() {
         };
         
         //フォント一覧表の設定
-        if(pref["fontSet"] == "使用中の全フォント") {
+        if(pref["fontName"] == "使用中の全フォント") {
             pref["fontTable"] = fs.fonts["document"];
         } else {
             pref["fontTable"][pref["fontName"]] = fs.fonts["document"][pref["fontName"]];
@@ -490,7 +495,7 @@ function main() {
         var cidTableSize = pref["glyphTable"]["cid"]["Pr6N"].length;
 
         var cnt = 0;
-        if(pref["fontSet"] == "使用中の全フォント") {
+        if(pref["fontName"] == "使用中の全フォント") {
             cnt = unicodeTableSize + app.activeDocument.fonts.length * cidTableSize;
         } else {
             cnt = unicodeTableSize + cidTableSize;
