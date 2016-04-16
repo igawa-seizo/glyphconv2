@@ -228,7 +228,7 @@ var GlyphConverter= (function () {
          var fontCnt = 0;
          for(var tmp in this.fontTable) fontCnt++;
          
-         if(this.pref.fontName == "使用中の全フォント" || fontCnt == 1) {
+         if(this.pref.fontName == "全てのOpenType Pro以上のフォント" || fontCnt == 1) {
             app.findTextPreferences.appliedFont = NothingEnum.nothing;
             app.findTextPreferences.fontStyle = NothingEnum.nothing;
          } else {
@@ -308,6 +308,13 @@ var GlyphConverter= (function () {
             "Pr6" : "Pr6",
             "Pr6N" : "Pr6N",
         };
+
+        //ヒラギノフォント特別対応
+        //ヒラギノはProと命名されつつもPr5の文字セット
+        if(fotnName.match(/ヒラギノ/)) {
+             if(result[0] == "Pro") return correspondence["Pr5"];
+             else if(result[0] == "ProN") return correspondence["Pr5N"];
+        }
         return correspondence[result[0]];
     }
 
@@ -364,7 +371,7 @@ var SettingDialog = (function ()  {
     //フォントメニュー
     SettingDialog.prototype.setFontMenu= function(panel)  {
         var list = [];
-        list.push("使用中の全フォント")
+        list.push("全てのOpenType Pro以上のフォント")
         for(font in this.appFonts) {
             list.push(font);
         }
@@ -484,7 +491,7 @@ function main() {
         };
         
         //フォント一覧表の設定
-        if(pref["fontName"] == "使用中の全フォント") {
+        if(pref["fontName"] == "全てのOpenType Pro以上のフォント") {
             pref["fontTable"] = fs.fonts["document"];
         } else {
             pref["fontTable"][pref["fontName"]] = fs.fonts["document"][pref["fontName"]];
@@ -495,7 +502,7 @@ function main() {
         var cidTableSize = pref["glyphTable"]["cid"]["Pr6N"].length;
 
         var cnt = 0;
-        if(pref["fontName"] == "使用中の全フォント") {
+        if(pref["fontName"] == "全てのOpenType Pro以上のフォント") {
             cnt = unicodeTableSize + app.activeDocument.fonts.length * cidTableSize;
         } else {
             cnt = unicodeTableSize + cidTableSize;
