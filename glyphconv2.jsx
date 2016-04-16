@@ -311,7 +311,7 @@ var GlyphConverter= (function () {
 
         //ヒラギノフォント特別対応
         //ヒラギノはProと命名されつつもPr5の文字セット
-        if(fotnName.match(/ヒラギノ/)) {
+        if(fontName.match(/ヒラギノ/)) {
              if(result[0] == "Pro") return correspondence["Pr5"];
              else if(result[0] == "ProN") return correspondence["Pr5N"];
         }
