@@ -394,7 +394,7 @@ var SettingDialog = (function ()  {
          var list = [];
          list.push("ドキュメント");
         if(doc.selection.length > 0) { 
-            list.push("ストーリー");
+        list.push("ストーリー");
             if(doc.selection[0].characters.length > 0) {
                 list.push("選択範囲");
             }
