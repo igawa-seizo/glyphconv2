@@ -249,6 +249,7 @@ var GlyphConverter= (function () {
                 //置換の実行
                 this.target.changeText();
                 this.progressPanel.ProgressBar.value++;
+                this.progressPanel.update();
             }
         } catch(err) {
             alert(err + "：" + dat["src"] + "→" + dat["dst"]);
@@ -278,8 +279,9 @@ var GlyphConverter= (function () {
                 app.findGlyphPreferences.glyphID = dat["src"];
                 app.changeGlyphPreferences.glyphID = dat["dst"];
                 
-                this.target.changeGlyph();            
+                this.target.changeGlyph();
                 this.progressPanel.ProgressBar.value++;
+                this.progressPanel.update();
             }
         } catch(err) {
             alert(err + ":" + dat["fchr"] + "（" + fontName +"）、" + dat["src"] + "→" + dat["dst"]);
@@ -287,6 +289,8 @@ var GlyphConverter= (function () {
     };    
 
     GlyphConverter.prototype.convert = function () {
+        //復帰を早くするために再描画を無効にする
+        app.scriptPreferences.enableRedraw = false;
         //UNICODE内での変換
        this.convertText();
 
@@ -294,6 +298,7 @@ var GlyphConverter= (function () {
         for(var fontName in this.fontTable) {
             this.convertGlyph(fontName);
         }
+        app.scriptPreferences.enableRedraw = true;
     }
 
     function getCorrespondence(fontName) {
@@ -446,8 +451,8 @@ var SettingDialog = (function ()  {
 }());
 
 ////////////////////////////////////////////////////////////////////////////
-
 function main() {
+    app.scriptPreferences.enableRedraw = true;
     //初期化処理
     var convertTable = setConvertTable();
     if(convertTable.length == 0) return;
@@ -461,7 +466,7 @@ function main() {
     var fs = new Fontset(panelObj.panel);
 
     panelObj.panel.close();
-
+    
     var dialog = new SettingDialog(fs.getAppFonts());
     //字形変換ダイアログの設定
     while(1) {
@@ -513,20 +518,23 @@ function main() {
         panelObj.setInstance(cnt, 400);
         panelObj.panel.ProgressLabel.text  = "字形変換中です。完了までしばらくお待ちください……" ;
         panelObj.panel.show();
-
+        panelObj.panel.update();
+       
         //タイマーを設定
         var startTime = new Date();
-
-        //コントローラを作成
-        var ctrl= new GlyphConverter(pref, panelObj.panel);    
-        ctrl.convert();
-        var endTime = new Date();
         
-        alert("変換が終了しました。所要時間：" + (endTime - startTime) / 1000 + "秒");
-        panelObj.panel.close();  
+        //コントローラを作成
+        var ctrl= new GlyphConverter(pref, panelObj.panel);
+        ctrl.convert();
+        
+        var endTime = new Date();
+        alert("字形変換が完了しました。所要時間：" + (endTime - startTime) / 1000 + "秒");
+        
+        panelObj.panel.close();
     }
 }
 
 //メイン関数呼び出し
 main();
+
 
