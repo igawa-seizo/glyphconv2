@@ -207,6 +207,8 @@ var Fontset= (function () {
 }());
 
 var GlyphConverter= (function () {
+    var step = 0;
+    
     // コンストラクタ
 	function GlyphConverter(pref, panel) {
         this.pref = pref;
@@ -220,6 +222,8 @@ var GlyphConverter= (function () {
         this.glyphTable = this.pref["glyphTable"];
         this.fontTable   = this.pref["fontTable"];
         this.progressPanel = panel;
+        
+        step = this.pref.cnt / 10;
 	}
 
     //UNICODE内での置換を担当する
@@ -240,6 +244,7 @@ var GlyphConverter= (function () {
          
          var table = this.glyphTable["unicode"];
          try {
+             var cnt = 0;
              for(var i = 0, len = table.length; i < len; i++) {
                 var dat = table[i];
                 //検索クエリの格納
@@ -248,8 +253,13 @@ var GlyphConverter= (function () {
             
                 //置換の実行
                 this.target.changeText();
-                this.progressPanel.ProgressBar.value++;
-                this.progressPanel.update();
+                
+                cnt++;
+                if(step < cnt) {
+                    this.progressPanel.ProgressBar.value += step;
+                    this.progressPanel.update();
+                    cnt = 0;
+                }
             }
         } catch(err) {
             alert(err + "：" + dat["src"] + "→" + dat["dst"]);
@@ -259,29 +269,31 @@ var GlyphConverter= (function () {
     //CIDでの字形変換を担当する
     GlyphConverter.prototype.convertGlyph = function(fontName)  {
         //検索クエリの格納
-        try {
         app.findGlyphPreferences.appliedFont = this.fontTable[fontName];
         app.findGlyphPreferences.fontStyle = this.fontTable[fontName].fontStyleName;
         
         app.changeGlyphPreferences.appliedFont = this.fontTable[fontName];
         app.changeGlyphPreferences.fontStyle = this.fontTable[fontName].fontStyleName;
-        } catch(err) {
-                alert(err);
-                alert(fontName)
-         }
         
         //変換表の取り出し
         var collection = getCorrespondence(fontName);
         var table = this.pref["glyphTable"]["cid"][collection];
+        
         try {
+             var cnt = 0;
             for(var i = 0, len = table.length; i < len; i++) {
                 var dat = table[i];
                 app.findGlyphPreferences.glyphID = dat["src"];
                 app.changeGlyphPreferences.glyphID = dat["dst"];
                 
                 this.target.changeGlyph();
-                this.progressPanel.ProgressBar.value++;
-                this.progressPanel.update();
+                
+                cnt++;
+                if(step < cnt) {
+                    this.progressPanel.ProgressBar.value += step;
+                    this.progressPanel.update();
+                    cnt = 0;
+                }
             }
         } catch(err) {
             alert(err + ":" + dat["fchr"] + "（" + fontName +"）、" + dat["src"] + "→" + dat["dst"]);
@@ -482,6 +494,7 @@ function main() {
               "mode" : dialog.getGlyphPref(),
               "fontTable" : {},
               "glyphTable" : {},
+              "cnt" : 0,
          };
      
         //設定に応じたる字形変換表を作成する
@@ -506,16 +519,15 @@ function main() {
         var unicodeTableSize = pref["glyphTable"]["unicode"].length;
         var cidTableSize = pref["glyphTable"]["cid"]["Pr6N"].length;
 
-        var cnt = 0;
         if(pref["fontName"] == "全てのOpenType Pro以上のフォント") {
-            cnt = unicodeTableSize + app.activeDocument.fonts.length * cidTableSize;
+            pref.cnt = unicodeTableSize + app.activeDocument.fonts.length * cidTableSize;
         } else {
-            cnt = unicodeTableSize + cidTableSize;
+            pref.cnt = unicodeTableSize + cidTableSize;
         }
         
         //進捗ダイアログの設定
         var panelObj = new ProgressPanel("字形変換中");
-        panelObj.setInstance(cnt, 400);
+        panelObj.setInstance(pref.cnt, 400);
         panelObj.panel.ProgressLabel.text  = "字形変換中です。完了までしばらくお待ちください……" ;
         panelObj.panel.show();
         panelObj.panel.update();
