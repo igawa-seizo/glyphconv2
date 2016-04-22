@@ -3,9 +3,9 @@
     // コンストラクタ
 	function ProgressPanel(title) {   
         // 最大値
-        this.MaximumValue = 300 ;
+        this.MaximumValue = 380 ;
         // プログレスバーの横幅
-        this.ProgressBarWidth = 300 ;
+        this.ProgressBarWidth = 380 ;
         // 1単位あたりの幅
         this.Increment = this.MaximumValue / this.ProgressBarWidth;
         
@@ -478,11 +478,26 @@ function main() {
     
     //OpenTypeフォントの取得
     var panelObj = new ProgressPanel("フォント取得中");
-    panelObj.setInstance(app.activeDocument.fonts.length, 400);
+    panelObj.setInstance(app.activeDocument.fonts.length, 450);
     panelObj.panel.ProgressLabel.text  = "フォントを取得中です。完了までしばらくお待ちください……" ;
     panelObj.panel.show();
 
     var fs = new Fontset(panelObj.panel);
+    
+    var modes = ["trad", "h22_fude", "h22"];
+    var glyphTables  = {};
+    for(var i = 0; i < modes.length; i++) {
+        mode = modes[i];
+        glyphTables[mode]  = {
+            "unicode" : makeUnicodeTableSubset(convertTable, mode, 3),
+            "cid" : {
+                "Pro"   : makeCidTableSubset(convertTable, mode, 1,   "Pro"),
+                "ProN" : makeCidTableSubset(convertTable, mode, 2, "ProN"),
+                "Pr6"   : makeCidTableSubset(convertTable, mode, 1,   "Pr6"),
+                "Pr6N" : makeCidTableSubset(convertTable, mode, 2, "Pr6N"),
+            },
+        };
+    }
 
     panelObj.panel.close();
     
@@ -505,15 +520,7 @@ function main() {
          };
      
         //設定に応じたる字形変換表を作成する
-        pref["glyphTable"]  = {
-            "unicode" : makeUnicodeTableSubset(convertTable, pref["mode"], 3),
-            "cid" : {
-                "Pro"   : makeCidTableSubset(convertTable, pref["mode"], 1,   "Pro"),
-                "ProN" : makeCidTableSubset(convertTable, pref["mode"], 2, "ProN"),
-                "Pr6"   : makeCidTableSubset(convertTable, pref["mode"], 1,   "Pr6"),
-                "Pr6N" : makeCidTableSubset(convertTable, pref["mode"], 2, "Pr6N"),
-            },
-        };
+        pref["glyphTable"]  = glyphTables[pref["mode"]];
         
         //フォント一覧表の設定
         if(pref["fontName"] == "全てのOpenType Pro以上のフォント") {
@@ -534,7 +541,7 @@ function main() {
         
         //進捗ダイアログの設定
         var panelObj = new ProgressPanel("字形変換中");
-        panelObj.setInstance(pref.cnt, 400);
+        panelObj.setInstance(pref.cnt, 450);
         panelObj.panel.ProgressLabel.text  = "字形変換中です（0／" + pref.cnt + "）。完了までしばらくお待ちください……" ;
         panelObj.panel.show();
         panelObj.panel.update();
