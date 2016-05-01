@@ -206,6 +206,56 @@ var Fontset= (function () {
     return Fontset;
 }());
 
+var GrepStyle= (function () {
+    var doc = app.activeDocument;
+    
+    // コンストラクタ
+	function GrepStyle() {   
+        this.grepStyleList  = {};
+	}
+
+    /*
+        現在のドキュメントの段落スタイルの正規表現スタイルを削除して、一時的な辞書に格納する
+     */
+    GrepStyle.prototype.remove = function() {
+        this.grepStyleList  = {};
+
+        for(i = 0, len = doc.paragraphStyles.length; i < len; i++) {
+            var pSty = doc.paragraphStyles[i];
+            var styLen = pSty.nestedGrepStyles.length;
+            
+            this.grepStyleList[pSty.name] = [];
+            for(j = styLen - 1; j >= 0; j--) {
+                this.grepStyleList[pSty.name].push({
+                    "grepExpression" : pSty.nestedGrepStyles[j].grepExpression,
+                    "appliedCharacterStyle" : pSty.nestedGrepStyles[j].appliedCharacterStyle,
+                });
+                pSty.nestedGrepStyles[j].remove();
+            }
+        }
+    };
+
+    /*
+       一時的な辞書から、正規表現スタイルを復元する
+     */
+    GrepStyle.prototype.recover = function() {
+        for(i = 0, len = doc.paragraphStyles.length; i < len; i++) {
+            var pSty = doc.paragraphStyles[i];
+            var styLen = this.grepStyleList[pSty.name].length;
+            
+            for(j = styLen - 1; j >= 0; j--) {
+                var grepStyle = this.grepStyleList[pSty.name][j];
+                
+                var style = pSty.nestedGrepStyles.add();
+                style.grepExpression = grepStyle.grepExpression;
+                style.appliedCharacterStyle = grepStyle.appliedCharacterStyle;
+            }
+        }
+    };
+
+    return GrepStyle;
+}());
+
 var GlyphConverter= (function () {
     var step = 0;
     var cnt = 0;
@@ -482,6 +532,11 @@ function main() {
     panelObj.panel.ProgressLabel.text  = "フォントを取得中です。完了までしばらくお待ちください……" ;
     panelObj.panel.show();
 
+    //正規表現スタイルを一時的に削除する
+    //検索・置換処理の高速化させるため
+    var grepStyles = new GrepStyle ();
+    grepStyles.remove();
+
     var fs = new Fontset(panelObj.panel);
     
     var modes = ["trad", "h22_fude", "h22"];
@@ -507,6 +562,7 @@ function main() {
          dialog.setWindow();
          if(dialog.show() != 0) {
              dialog.dispose();
+             grepStyles.recover();
              break;
          }
          
