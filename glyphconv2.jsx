@@ -239,6 +239,9 @@ var GrepStyle= (function () {
        一時的な辞書から、正規表現スタイルを復元する
      */
     GrepStyle.prototype.recover = function() {
+        //復帰を早くするために再描画を無効にする
+        app.scriptPreferences.enableRedraw = false;
+        
         for(i = 0, len = doc.paragraphStyles.length; i < len; i++) {
             var pSty = doc.paragraphStyles[i];
             var styLen = this.grepStyleList[pSty.name].length;
@@ -251,6 +254,8 @@ var GrepStyle= (function () {
                 style.appliedCharacterStyle = grepStyle.appliedCharacterStyle;
             }
         }
+    
+        app.scriptPreferences.enableRedraw = true;
     };
 
     return GrepStyle;
