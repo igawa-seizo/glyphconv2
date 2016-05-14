@@ -437,9 +437,9 @@ var SettingDialog = (function ()  {
                 with(borderPanels.add()) {
                     with(dialogColumns.add()) {  
                         this.setFontMenu(dialogRows.add());
-                        with(dialogRows.add()) {　staticTexts.add({staticLabel:""}); }
+                        with(dialogRows.add()) { staticTexts.add({staticLabel:""}); }
                         this.setGlyphMenu(dialogRows.add());
-                        with(dialogRows.add()) {　staticTexts.add({staticLabel:""});}
+                        with(dialogRows.add()) { staticTexts.add({staticLabel:""});}
                         this.setRangeMenu(dialogRows.add());
                     }
                 }
@@ -450,10 +450,10 @@ var SettingDialog = (function ()  {
     //フォントメニュー
     SettingDialog.prototype.setFontMenu= function(panel)  {
         var list = [];
-        list.push("全てのOpenType Pro以上のフォント")
         for(font in this.appFonts) {
             list.push(font);
         }
+        list.push("全てのOpenType Pro以上のフォント")
         with(panel) {
             staticTexts.add({staticLabel:"フォント："});
             this.font = dropdowns.add({stringList: list, selectedIndex:0, minWidth:200});
@@ -468,8 +468,8 @@ var SettingDialog = (function ()  {
             this.glyph = radiobuttonGroups.add();
             with(this.glyph){
                 radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえあり", checkedState:true});
-                radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえなし"});
-                radiobuttonControls.add({staticLabel:"いわゆる康熙字典体（旧字体）"});
+                radiobuttonControls.add({staticLabel:"常用漢字表（平成22年）／筆押さえなし", checkedState:false});
+                radiobuttonControls.add({staticLabel:"いわゆる康熙字典体（旧字体）", checkedState:false});
             }
         }
     };
@@ -478,17 +478,19 @@ var SettingDialog = (function ()  {
      SettingDialog.prototype.setRangeMenu= function(panel)  {
          var doc = app.activeDocument;
          var list = [];
+         var idx = 0;
          list.push("ドキュメント");
         if(doc.selection.length > 0) { 
-        list.push("ストーリー");
+            list.push("ストーリー");
             if(doc.selection[0].characters.length > 0) {
                 list.push("選択範囲");
+                idx = 2;
             }
         }
          
          with(panel) {
             staticTexts.add({staticLabel:"検索と置換："});
-            this.range = dropdowns.add({stringList: list, selectedIndex:0, minWidth:200});
+            this.range = dropdowns.add({stringList: list, selectedIndex:idx, minWidth:200});
         }
      };
 
